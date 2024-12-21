@@ -1,0 +1,6 @@
+﻿#include "MiniGameLogChannels.h"
+
+DEFINE_LOG_CATEGORY(LogMiniGame)
+DEFINE_LOG_CATEGORY(LogMiniGameSkin)
+DEFINE_LOG_CATEGORY(LogMiniGameSave)
+DEFINE_LOG_CATEGORY(LogMiniGameCharacter)

@@ -4,18 +4,17 @@
 #include "MiniGamePawn.h"
 
 #include "AbilitySystemComponent.h"
+#include "EnhancedInputComponent.h"
 #include "MiniGameAbilitySystemComponent.h"
+#include "MiniGameCameraComponent.h"
+#include "MiniGameGameplayAbility.h"
+#include "MiniGameInputEventSet.h"
 #include "MiniGamePlayerController.h"
 #include "MoverComponent.h"
+#include "Camera/CameraComponent.h"
 #include "MiniGameAbilities/Public/MiniGameAbilitySet.h"
 #include "Components/CapsuleComponent.h"
 
-// Called when the game starts or when spawned
-void AMiniGamePawn::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
 
 AMiniGamePawn::AMiniGamePawn(const FObjectInitializer& ObjectInitializer)
 {
@@ -126,12 +125,12 @@ AMiniGamePawn::AMiniGamePawn(const FObjectInitializer& ObjectInitializer)
 	GliderMesh->bAffectDynamicIndirectLighting = true;
 	GliderMesh->PrimaryComponentTick.TickGroup = TG_PrePhysics;
 
-	/*// create the camera
+	// create the camera
 	Camera = CreateDefaultSubobject<UMiniGameCameraComponent>(TEXT("Camera"));
 
 	check(Camera);
 
-	Camera->SetupAttachment(PlayerCapsule);*/
+	Camera->SetupAttachment(PlayerCapsule);
 
 	// create the Mover component
 	CharacterMotionComponent = CreateDefaultSubobject<UMoverComponent>(TEXT("MoverComponent"));
@@ -157,12 +156,36 @@ AMiniGamePawn::AMiniGamePawn(const FObjectInitializer& ObjectInitializer)
 void AMiniGamePawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
 
-// Called to bind functionality to input
-void AMiniGamePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	// spin the camera base on input
+	if (PC)
+	{
+		// apply control input
+		PC->AddYawInput(CachedLookInput.Yaw * CameraRotationRateYaw * DeltaTime / GetActorTimeDilation());
+		PC->AddPitchInput(-CachedLookInput.Pitch * CameraRotationRatePitch * DeltaTime / GetActorTimeDilation());
+
+		if (CachedMoveInputIntent.Size() > 0.f)
+		{
+			if (ShouldAlignCameraOnMovement())
+			{
+				AlignCameraToFacing(DeltaTime, CameraMovementAlignSpeed * CachedMoveInputIntent.GetClampedToMaxSize(1.f).Size());
+			}
+
+			// calculate the time since our last relevant input
+			float TimeSinceLastInput = GetWorld()->GetTimeSeconds() - CameraAutoAlignLastInputTime;
+
+			float AutoAlignTime = bOverrideCameraAutoAlign ? bOverrideCameraAutoAlign : CameraAutoAlignSpeed;
+
+			// check if it is time to auto align the camera
+			if (ShouldAutoAlignCamera() && TimeSinceLastInput >= AutoAlignTime)
+			{
+				float AutoAlignSpeed = bOverrideCameraAutoAlign ? bOverrideCameraAutoAlign : CameraAutoAlignSpeed;
+
+				AlignCameraToFacing(DeltaTime, AutoAlignSpeed);
+			}
+		}
+	}
+
 }
 
 void AMiniGamePawn::PossessedBy(AController* NewController)
@@ -196,4 +219,221 @@ void AMiniGamePawn::PossessedBy(AController* NewController)
 	}
 	
 }
+
+// Called when the game starts or when spawned
+void AMiniGamePawn::BeginPlay()
+{
+	Super::BeginPlay();
+	
+}
+
+void AMiniGamePawn::Move(const FInputActionValue& Value)
+{
+	// input is a vector 2D
+	FVector2d MovementVector = Value.Get<FVector2d>();
+
+	// set up the input vector. we flip the axis, so they correspond with the expected Mover input
+	CachedMoveInputIntent.X = FMath::Clamp(MovementVector.Y, -1.f, 1.f);
+	CachedMoveInputIntent.Y = FMath::Clamp(MovementVector.X, -1.f, 1.f);
+
+	// cancel autorun if the input intent is nonzero
+	if (!CachedMoveInputIntent.IsNearlyZero())
+	{
+		bWantsToAutoWalk = false;
+	}
+
+	// broadcast the delegate
+	OnMoved.Broadcast(MovementVector);
+
+	// update the camera auto align timeout
+	UpdateCameraAutoAlignTime();
+}
+
+void AMiniGamePawn::MoveCompleted(const FInputActionValue& Value)
+{
+	// zero out the cached input
+	CachedMoveInputIntent = FVector::ZeroVector;
+
+	// broadcast the delegate
+	OnMoved.Broadcast(FVector2D::ZeroVector);
+	
+}
+
+void AMiniGamePawn::Look(const FInputActionValue& Value)
+{
+}
+
+void AMiniGamePawn::LookCompleted(const FInputActionValue& Value)
+{
+}
+
+void AMiniGamePawn::Jump()
+{
+}
+
+void AMiniGamePawn::StopJumping()
+{
+}
+
+void AMiniGamePawn::AutoWalk()
+{
+}
+
+void AMiniGamePawn::AdjustCameraDistance(const FInputActionValue& Value)
+{
+}
+
+void AMiniGamePawn::AddWind(const FVector& Wind)
+{
+}
+
+// Called to bind functionality to input
+void AMiniGamePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	// Set up action bindings
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		// Move
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMiniGamePawn::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AMiniGamePawn::MoveCompleted);
+
+		// Look
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMiniGamePawn::Look);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Completed, this, &AMiniGamePawn::LookCompleted);
+
+		// Jump
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMiniGamePawn::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AMiniGamePawn::StopJumping);
+
+		// Autorun
+		EnhancedInputComponent->BindAction(AutoWalkAction, ETriggerEvent::Completed, this, &AMiniGamePawn::AutoWalk);
+
+		// Camera distance adjust
+		EnhancedInputComponent->BindAction(CameraDistanceAction, ETriggerEvent::Triggered, this, &AMiniGamePawn::AdjustCameraDistance);
+
+		// bind the input event set
+		BindInputEventSet(InputEventSet, EnhancedInputComponent);
+	}
+}
+
+void AMiniGamePawn::BindInputEventSet(const UMiniGameInputEventSet* EventSet,
+	UEnhancedInputComponent* EnhancedInputComponent)
+{
+	if (!EventSet)
+	{
+		return;
+	}
+
+	// grant the input event set to this pawn
+	EventSet->GiveToPawn(this,EnhancedInputComponent);
+}
+
+void AMiniGamePawn::BindInputEvent(const UInputAction* InputAction, FGameplayTag EventTag,
+	UEnhancedInputComponent* EnhancedInputComponent)
+{
+	// ensure input action is valid
+	if (!IsValid(InputAction))
+	{
+		return;
+	}
+
+	// ensure we only one binding per input action
+	if (InputEventMap.Find(InputAction))
+	{
+		return;
+	}
+
+	// ensure the event tag is valid
+	if (EventTag == FGameplayTag::EmptyTag)
+	{
+		return;
+	}
+
+	// save the event tag to the action map
+	InputEventMap.Add(InputAction, EventTag);
+
+	// create the bindings
+	EnhancedInputComponent->BindAction(InputAction, ETriggerEvent::Started, this, &AMiniGamePawn::HandleInputPressed);
+	EnhancedInputComponent->BindAction(InputAction, ETriggerEvent::Ongoing, this, &AMiniGamePawn::HandleInputOngoing);
+	EnhancedInputComponent->BindAction(InputAction, ETriggerEvent::Completed, this, &AMiniGamePawn::HandleInputReleased);
+}
+
+void AMiniGamePawn::HandleInputPressed(const FInputActionInstance& ActionInstance)
+{
+	const UInputAction* InputAction = ActionInstance.GetSourceAction();
+
+	if (FGameplayTag* EventMapping = InputEventMap.Find(InputAction))
+	{
+		FGameplayEventData Payload;
+		Payload.InstigatorTags.AddTag(TAG_MiniGame_Input_Pressed);
+
+		AbilitySystem->HandleGameplayEvent(*EventMapping, &Payload);
+	}
+}
+
+void AMiniGamePawn::HandleInputOngoing(const FInputActionInstance& ActionInstance)
+{
+	const UInputAction* InputAction = ActionInstance.GetSourceAction();
+
+	if (FGameplayTag* EventMapping = InputEventMap.Find(InputAction))
+	{
+		FGameplayEventData Payload;
+		Payload.InstigatorTags.AddTag(TAG_MiniGame_Input_Ongoing);
+
+		AbilitySystem->HandleGameplayEvent(*EventMapping, &Payload);
+	}
+}
+
+void AMiniGamePawn::HandleInputReleased(const FInputActionInstance& ActionInstance)
+{
+	const UInputAction* InputAction = ActionInstance.GetSourceAction();
+
+	if (FGameplayTag* EventMapping = InputEventMap.Find(InputAction))
+	{
+		FGameplayEventData Payload;
+		Payload.InstigatorTags.AddTag(TAG_MiniGame_Input_Released);
+
+		AbilitySystem->HandleGameplayEvent(*EventMapping, &Payload);
+	}
+}
+
+/*void AMiniGamePawn::ProduceInput_Implementation(int32 SimTimeMs, FMoverInputCmdContext& InputCmdResult)
+{
+	float DeltaMs = (float)SimTimeMs;
+
+	FCharacterDefaultInputs& DefaultkinematicInputs = InputCmdResult.InputCollection.FindOrAddMutableDataByType<FCharacterDefaultInputs>();
+	//FMiniGameMovementInputs
+}*/
+
+void AMiniGamePawn::AlignCameraToFacing(float DeltaTime, float AlignSpeed)
+{
+	// get the camera facing vector
+	FVector CameraFacing = Camera->GetViewRotation().RotateVector(FVector::ForwardVector);
+	CameraFacing = CameraFacing.GetSafeNormal2D();
+
+	// dot product with our right vector to get the yaw input strength
+	float FacingDot = -FVector::DotProduct(CameraFacing, GetActorRightVector());
+
+	// rotate the camera facing through a controller yaw input
+	PC->AddYawInput(FacingDot * AlignSpeed * DeltaTime);
+}
+
+bool AMiniGamePawn::ShouldAutoAlignCamera()
+{
+	// skip auto alignment if we are aiming the grapple
+	return !bIsAimPressed || bOverrideCameraAutoAlign;
+}
+
+void AMiniGamePawn::UpdateCameraAutoAlignTime()
+{
+	CameraAutoAlignLastInputTime = GetWorld()->GetTimeSeconds();
+}
+
+bool AMiniGamePawn::ShouldAlignCameraOnMovement()
+{
+	return (bAlignCameraOnMovement && !bIsAimPressed);
+}
+
 
