@@ -1,0 +1,27 @@
+# 忽略临时和中间文件
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+# Content/Characters/Echo
+# Content/ParagonCountess/
+
+# 忽略配置文件（可选，视项目需要）
+# Config/Default*.ini
+
+# 忽略构建相关文件
+Build/
+
+# 忽略特定的日志和调试文件
+*.log
+*.tmp
+
+# 忽略生成的二进制文件
+*.exe
+*.dll
+*.app
+
+# 忽略插件和市场资源（可选）
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+*.mp4
