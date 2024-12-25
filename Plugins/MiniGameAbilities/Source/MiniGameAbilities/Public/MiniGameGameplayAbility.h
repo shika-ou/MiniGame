@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MiniGameAbilitySystemComponent.h"
 #include "NativeGameplayTags.h"
 #include "Abilities/GameplayAbility.h"
 
@@ -22,4 +23,11 @@ UCLASS(Abstract)
 class MINIGAMEABILITIES_API UMiniGameGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
+public:
+	
+	UFUNCTION(BlueprintCallable)
+	ACharacter* GetMiniGameCharacterFromActorInfo() const;
+	
+	UFUNCTION(BlueprintCallable)
+	UMiniGameAbilitySystemComponent* GetMiniGameAbilitySystemComponent() const;
 };

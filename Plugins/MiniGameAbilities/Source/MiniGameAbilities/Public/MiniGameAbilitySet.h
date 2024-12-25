@@ -6,8 +6,8 @@
 #include "Engine/DataAsset.h"
 #include "MiniGameAbilitySet.generated.h"
 
+class UGameplayAbility;
 class UMiniGameGameplayEffect;
-class UMiniGameGameplayAbility;
 class UAttributeSet;
 struct FActiveGameplayEffectHandle;
 struct FGameplayAbilitySpecHandle;
@@ -26,7 +26,7 @@ public:
 
 	// Class of the gameplay ability to grant
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UMiniGameGameplayAbility> Ability = nullptr;
+	TSubclassOf<UGameplayAbility> Ability = nullptr;
 
 	// Level of the ability to grant
 	UPROPERTY(EditDefaultsOnly)

@@ -25,7 +25,7 @@ public class MiniGameMovement : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
+				"Core", "Mover",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -38,6 +38,7 @@ public class MiniGameMovement : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"GameplayTags",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

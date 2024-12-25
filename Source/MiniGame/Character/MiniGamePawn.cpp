@@ -9,9 +9,10 @@
 #include "MiniGameCameraComponent.h"
 #include "MiniGameGameplayAbility.h"
 #include "MiniGameInputEventSet.h"
+#include "MiniGameMoverComponent.h"
+#include "MiniGameMoverTypes.h"
 #include "MiniGamePlayerController.h"
 #include "MoverComponent.h"
-#include "Camera/CameraComponent.h"
 #include "MiniGameAbilities/Public/MiniGameAbilitySet.h"
 #include "Components/CapsuleComponent.h"
 
@@ -133,7 +134,7 @@ AMiniGamePawn::AMiniGamePawn(const FObjectInitializer& ObjectInitializer)
 	Camera->SetupAttachment(PlayerCapsule);
 
 	// create the Mover component
-	CharacterMotionComponent = CreateDefaultSubobject<UMoverComponent>(TEXT("MoverComponent"));
+	CharacterMotionComponent = CreateDefaultSubobject<UMiniGameMoverComponent>(TEXT("MoverComponent"));
 	ensure(CharacterMotionComponent);
 
 	// create the ASC
@@ -246,7 +247,7 @@ void AMiniGamePawn::Move(const FInputActionValue& Value)
 	OnMoved.Broadcast(MovementVector);
 
 	// update the camera auto align timeout
-	UpdateCameraAutoAlignTime();
+	//UpdateCameraAutoAlignTime();
 }
 
 void AMiniGamePawn::MoveCompleted(const FInputActionValue& Value)
@@ -261,26 +262,56 @@ void AMiniGamePawn::MoveCompleted(const FInputActionValue& Value)
 
 void AMiniGamePawn::Look(const FInputActionValue& Value)
 {
+	// input is a Vector2D
+	FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+	// set up the look input rotator
+	CachedLookInput.Yaw = CachedTurnInput.Yaw = FMath::Clamp(LookAxisVector.X, -1.f, 1.f);
+	CachedLookInput.Pitch = CachedTurnInput.Pitch = FMath::Clamp(LookAxisVector.Y, -1.f, 1.f);
+
+	// update the camera auto align timeout
+	UpdateCameraAutoAlignTime();
 }
 
 void AMiniGamePawn::LookCompleted(const FInputActionValue& Value)
 {
+	// zero out the cached input
+	CachedLookInput = FRotator::ZeroRotator;
 }
 
 void AMiniGamePawn::Jump()
 {
+	// is this the first frame we want to jump?
+	bWantsToJump = !bIsJumpPressed;
+
+	// update the flag
+	bIsJumpPressed = true;
+
+	// broadcast the delegate
+	OnJumped.Broadcast(true);
+
+	// update the camera auto align timeout
+	UpdateCameraAutoAlignTime();
 }
 
 void AMiniGamePawn::StopJumping()
 {
+	// reset the flag
+	bIsJumpPressed = bWantsToJump = false;
+
+	// broadcast the delegate
+	OnJumped.Broadcast(false);
 }
 
 void AMiniGamePawn::AutoWalk()
 {
+	// toggle autorun
+	bWantsToAutoWalk = !bWantsToAutoWalk;
 }
 
 void AMiniGamePawn::AdjustCameraDistance(const FInputActionValue& Value)
 {
+	Camera->AdjustArmLengthMultiplier(Value.Get<float>());
 }
 
 void AMiniGamePawn::AddWind(const FVector& Wind)
@@ -399,17 +430,141 @@ void AMiniGamePawn::HandleInputReleased(const FInputActionInstance& ActionInstan
 	}
 }
 
-/*void AMiniGamePawn::ProduceInput_Implementation(int32 SimTimeMs, FMoverInputCmdContext& InputCmdResult)
+void AMiniGamePawn::ProduceInput_Implementation(int32 SimTimeMs, FMoverInputCmdContext& InputCmdResult)
 {
 	float DeltaMs = (float)SimTimeMs;
 
 	FCharacterDefaultInputs& DefaultkinematicInputs = InputCmdResult.InputCollection.FindOrAddMutableDataByType<FCharacterDefaultInputs>();
-	//FMiniGameMovementInputs
-}*/
+	FMiniGameMovementInputs& MiniGameInputs = InputCmdResult.InputCollection.FindOrAddMutableDataByType<FMiniGameMovementInputs>();
+
+	static const FCharacterDefaultInputs DoNothingInput;
+
+	// do we have a controller ?
+	if (nullptr == Controller)
+	{
+		// are we the authority ?
+		if (GetLocalRole() == ENetRole::ROLE_Authority && GetRemoteRole() == ENetRole::ROLE_SimulatedProxy)
+		{
+			// no controller, so pass a do nothing input
+			DefaultkinematicInputs = DoNothingInput;
+		}
+
+		// no need to run input code without a controller
+		return;
+	}
+
+	// is movement disabled ?
+	if (GetMoverComponent()->IsMovementDisabled())
+	{
+		// pass a do nothing input
+		DefaultkinematicInputs = DoNothingInput;
+	}
+
+	DefaultkinematicInputs.ControlRotation = FRotator::ZeroRotator;
+
+	// copy the control rotation
+	if (PC)
+	{
+		DefaultkinematicInputs.ControlRotation = PC->GetControlRotation();
+	}
+
+	// force the forward input intent if autoWalk is on
+	FVector MoveInputIntent = CachedMoveInputIntent;
+
+	if (bWantsToAutoWalk)
+	{
+		MoveInputIntent.X = 1.f;
+	}
+
+	// use only the control rotation yaw to avoid tapering out inputs if looking at the character from a too low or too high angle
+	FRotator ControlFacing = FRotator::ZeroRotator;
+	ControlFacing.Yaw = DefaultkinematicInputs.ControlRotation.Yaw;
+
+	// set the move input
+	DefaultkinematicInputs.SetMoveInput(EMoveInputType::DirectionalIntent, ControlFacing.RotateVector(MoveInputIntent));
+
+	// check if we have a nonzero input
+	static float RotationMagMin(1e-3);
+	const bool bHasAffirmativeMoveInput = (DefaultkinematicInputs.GetMoveInput().Size() >= RotationMagMin);
+
+	// Figure out the orientation intent for the character
+	DefaultkinematicInputs.OrientationIntent = FVector::ZeroVector;
+
+	if (bIsAimPressed)
+	{
+		// set the orientation intent to the camera forward vector
+		DefaultkinematicInputs.OrientationIntent = Camera->GetViewRotation().RotateVector(FVector::ForwardVector);
+
+		// save the last nonzero input
+		LastAffirmativeMoveInput = DefaultkinematicInputs.OrientationIntent;
+	}
+	// do we have an affirmative input intent?
+	else if (bHasAffirmativeMoveInput)
+	{
+		// set the orientation intent to the movement direction
+		DefaultkinematicInputs.OrientationIntent = DefaultkinematicInputs.GetMoveInput();
+
+		// save the last nonzero input
+		LastAffirmativeMoveInput = DefaultkinematicInputs.OrientationIntent;
+	}
+	else
+	{
+		// no input intent, so keep the last orientation from input
+		DefaultkinematicInputs.OrientationIntent = LastAffirmativeMoveInput;
+	}
+
+	// cancel out any z intent to keep the actor verical
+	DefaultkinematicInputs.OrientationIntent = DefaultkinematicInputs.OrientationIntent.GetSafeNormal2D();
+
+	// set the jump inputs
+	DefaultkinematicInputs.bIsJumpPressed = bIsJumpPressed;
+	DefaultkinematicInputs.bIsJumpJustPressed = bWantsToJump;
+
+	// set the sprint inputs
+	MiniGameInputs.bIsSprintPressed = bIsSprintPressed;
+	MiniGameInputs.bIsSprintJustPressed = bWantsToSprint;
+
+	// set the glide inputs
+	MiniGameInputs.bIsGlidePressed = bIsGlidePressed;
+	MiniGameInputs.bIsGlideJustPressed = bWantsToGlide;
+
+	// set the wind velocity
+	MiniGameInputs.Wind = WindVelocity;
+
+	// Convert inputs to be relative to the current movement base (depending on options and state)
+	DefaultkinematicInputs.bUsingMovementBase = false;
+
+	// get the Mover component
+	if (const UMoverComponent* MoverComponent = GetMoverComponent())
+	{
+		// get the Mover component
+		if (UPrimitiveComponent* MovementBase = MoverComponent->GetMovementBase())
+		{
+			FName MovementBaseBoneName = MoverComponent->GetMovementBaseBoneName();
+
+			FVector RelativeMoveInput, RelativeOrientDir;
+
+			UBasedMovementUtils::TransformWorldDirectionToBased(MovementBase, MovementBaseBoneName, DefaultkinematicInputs.GetMoveInput(), RelativeMoveInput);
+			UBasedMovementUtils::TransformWorldDirectionToBased(MovementBase, MovementBaseBoneName, DefaultkinematicInputs.OrientationIntent, RelativeOrientDir);
+
+			DefaultkinematicInputs.SetMoveInput(DefaultkinematicInputs.GetMoveInputType(), RelativeMoveInput);
+			DefaultkinematicInputs.OrientationIntent = RelativeOrientDir;
+
+			DefaultkinematicInputs.bUsingMovementBase = true;
+			DefaultkinematicInputs.MovementBase = MovementBase;
+			DefaultkinematicInputs.MovementBaseBoneName = MovementBaseBoneName;
+		}
+	}
+
+	// Clear/consume the inputs
+	bWantsToJump = false;
+	bWantsToGlide = false;
+	bWantsToSprint = false;
+}
 
 void AMiniGamePawn::AlignCameraToFacing(float DeltaTime, float AlignSpeed)
 {
-	// get the camera facing vector
+	/*// get the camera facing vector
 	FVector CameraFacing = Camera->GetViewRotation().RotateVector(FVector::ForwardVector);
 	CameraFacing = CameraFacing.GetSafeNormal2D();
 
@@ -417,7 +572,7 @@ void AMiniGamePawn::AlignCameraToFacing(float DeltaTime, float AlignSpeed)
 	float FacingDot = -FVector::DotProduct(CameraFacing, GetActorRightVector());
 
 	// rotate the camera facing through a controller yaw input
-	PC->AddYawInput(FacingDot * AlignSpeed * DeltaTime);
+	PC->AddYawInput(FacingDot * AlignSpeed * DeltaTime);*/
 }
 
 bool AMiniGamePawn::ShouldAutoAlignCamera()
@@ -429,6 +584,14 @@ bool AMiniGamePawn::ShouldAutoAlignCamera()
 void AMiniGamePawn::UpdateCameraAutoAlignTime()
 {
 	CameraAutoAlignLastInputTime = GetWorld()->GetTimeSeconds();
+}
+
+void AMiniGamePawn::SetCameraAutoAlignState(bool bEnable, float AutoAlignTime, float AutoAlignSpeed)
+{
+	bOverrideCameraAutoAlign = bEnable;
+
+	OverrideCameraAutoAlignTime = AutoAlignTime;
+	OverrideCameraAutoAlignSpeed = AutoAlignSpeed;
 }
 
 bool AMiniGamePawn::ShouldAlignCameraOnMovement()

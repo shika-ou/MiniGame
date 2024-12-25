@@ -8,9 +8,9 @@ public class MiniGame : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore","Mover", "EnhancedInput", "GameplayTags", "GameplayAbilities"});
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore","Mover", "EnhancedInput", "GameplayTags", "GameplayAbilities", "UMG"});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "MiniGameFramework", "MiniGameAbilities", "MiniGameCamera"});
+		PrivateDependencyModuleNames.AddRange(new string[] { "MiniGameFramework", "MiniGameAbilities", "MiniGameCamera", "MiniGameMovement", "CommonUI" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

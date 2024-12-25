@@ -149,7 +149,7 @@ void UMiniGameAbilitySet::GiveToAbilitySystem(UMiniGameAbilitySystemComponent* A
 		}
 
 		// get the CDO and build the ability spec
-		UMiniGameGameplayAbility* GameplayAbilityCDO = AbilityToGrant.Ability->GetDefaultObject<UMiniGameGameplayAbility>();
+		UGameplayAbility* GameplayAbilityCDO = AbilityToGrant.Ability->GetDefaultObject<UGameplayAbility>();
 		ensure(GameplayAbilityCDO);
 
 		FGameplayAbilitySpec AbilitySpec(GameplayAbilityCDO, AbilityToGrant.AbilityLevel);

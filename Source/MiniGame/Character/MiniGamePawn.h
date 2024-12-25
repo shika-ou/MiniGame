@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "MiniGameCameraComponent.h"
+#include "MoverSimulationTypes.h"
 #include "GameFramework/Pawn.h"
 #include "MiniGamePawn.generated.h"
 
@@ -12,7 +14,7 @@ struct FMoverInputCmdContext;
 struct FInputActionInstance;
 class UMiniGameInputEventSet;
 class UInputAction;
-class UMoverComponent;
+class UMiniGameMoverComponent;
 class UCameraComponent;
 class UMiniGameAbilitySystemComponent;
 class UMiniGameAbilitySet;
@@ -26,7 +28,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMiniGamePawn_OnMoved, FVector2D, Mo
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMiniGamePawn_OnJumped, bool, bPressed);
 
 UCLASS()
-class MINIGAME_API AMiniGamePawn : public APawn
+class MINIGAME_API AMiniGamePawn : public APawn,
+	public IMoverInputProducerInterface,
+	public IMiniGameCameraOwnerInterface
 {
 	GENERATED_BODY()
 
@@ -77,7 +81,14 @@ private:
 
 	/** Mover Component */
 	UPROPERTY(Category = Movement, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr <UMoverComponent/*UMiniGameMoverComponent*/> CharacterMotionComponent;
+	TObjectPtr <UMiniGameMoverComponent> CharacterMotionComponent;
+
+public:
+
+	/** Accessor for the Mover component*/
+	UFUNCTION(BlueprintPure, Category = Mover)
+	UMiniGameMoverComponent* GetMoverComponent() const { return CharacterMotionComponent;}
+	
 
 public:
 
@@ -197,6 +208,9 @@ protected:
 	// Mover Interface
 	
 private:
+	/** last nonzero  movement intent input */
+	FVector LastAffirmativeMoveInput = FVector::ZeroVector;
+	
 	/* cached move variables */
 	FVector CachedMoveInputIntent = FVector::ZeroVector;
 	FRotator CachedTurnInput = FRotator::ZeroRotator;
@@ -237,7 +251,7 @@ private:
 
 protected:
 	/* Entry point for input production. */
-	//virtual void ProduceInput_Implementation(int32 SimTimeMs, FMoverInputCmdContext& InputCmdResult) override;
+	virtual void ProduceInput_Implementation(int32 SimTimeMs, FMoverInputCmdContext& InputCmdResult) override;
 
 
 	
@@ -253,6 +267,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Controls")
 	float CameraRotationRatePitch = 100.0f;
 
+	/** Last cached input time. Used to calculate time elapsed for camera auto align */
+	float CameraAutoAlignLastInputTime = 0.0f;
+	
 	/** Time elapsed without input before the camera auto align kicks in */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Auto Alignment")
 	float CameraAutoAlignTime = 3.0f;
@@ -264,8 +281,8 @@ protected:
 	/** If true, camera auto align override values will be used instead */
 	bool bOverrideCameraAutoAlign = false;
 	
-	/** Last cached input time. Used to calculate time elapsed for camera auto align */
-	float CameraAutoAlignLastInputTime = 0.0f;
+	/** Override auto align time*/
+	float OverrideCameraAutoAlignTime = 0.0f;
 
 	/** Override auto align speed */
 	float OverrideCameraAutoAlignSpeed = 10.0f;
@@ -279,6 +296,10 @@ protected:
 	/** Updates the cached input time to determine camera auto alignment timeout */
 	void UpdateCameraAutoAlignTime();
 
+public:
+	/** Enables or disables camera auto-align */
+	virtual void SetCameraAutoAlignState(bool bEnable, float AutoAlignTime, float AutoAlignSpeed) override;
+	
 protected:
 
 	/** If true, the camera will be automatically turn to align towards the character when moving sideways */
