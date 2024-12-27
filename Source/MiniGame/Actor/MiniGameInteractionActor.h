@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "MiniGameInteractionActor.generated.h"
 
+class UNiagaraSystem;
 class UMiniGameAbilitySet;
 class UCurveVector;
 class UBoxComponent;
@@ -55,27 +56,48 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// indicates whether the actor should be destroyed after interaction.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniGame|Destory", meta = (AllowPrivateAccess = "true"))
+	bool bShouldDestroyActorAfterInterAction;
+
+	// the effect in the destroy actor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniGame|Destory", meta = (AllowPrivateAccess = "true", EditCondition="bShouldDestroyActorAfterInterAction", true))
+	TObjectPtr<UNiagaraSystem> DestroyEffect;
+
+	// indicates whether the target actor should change the skin.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniGame|ChangeSkin", meta = (AllowPrivateAccess = "true"))
+	bool bShouldChangeSkinAfterOverlay;
+
+	// target skin index
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniGame|ChangeSkin", meta = (AllowPrivateAccess = "true", EditCondition="bShouldChangeSkinAfterOverlay", true))
+	uint8 SkinIndex;
+	
+	///////////////////////////////
+	/// component
 	// actor static mesh
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "InteractionActor", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniGame", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
 
 	// actor box comp for interaction with player
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "InteractionActor", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniGame", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBoxComponent> BoxComponent;
 
 	///////////////////
 	/// Details of Actor's Cyclic Motion
 
-	// movement of location 
 	UPROPERTY(EditAnywhere, Category="MiniGame|ActorMovement"/*, meta=(TitleProperty=Movement)*/)
+	bool bEnableActorMovement;
+	
+	// movement of location 
+	UPROPERTY(EditAnywhere, Category="MiniGame|ActorMovement", meta=(EditCondition="bEnableActorMovement", true))
 	FActorMovementStruct LocationMovementStruct;
 
 	// movement of rotation
-	UPROPERTY(EditAnywhere, Category="MiniGame|ActorMovement")
+	UPROPERTY(EditAnywhere, Category="MiniGame|ActorMovement", meta=(EditCondition="bEnableActorMovement", true))
 	FActorMovementStruct RotationMovementStruct;
 
 	// movement of scale
-	UPROPERTY(EditAnywhere, Category="MiniGame|ActorMovement")
+	UPROPERTY(EditAnywhere, Category="MiniGame|ActorMovement", meta=(EditCondition="bEnableActorMovement", true))
 	FActorMovementStruct ScaleMovementStruct;
 
 	////////////////////
@@ -102,11 +124,14 @@ private:
 
 	float CurrentActorMovementPlayTime_Scale;
 
+	void UpdateActorMovement(float DeltaTime);
+	
 	void UpdateMovementCurve(EMovementType MovementType, const float& DeltaTime,
 							 const FActorMovementStruct& MovementStruct,
 							 float& CurrentPlayTime, bool& bMovementIsOvered) const;
 
-	
+
+protected:
 	//////////////////////////////
 	/// actor interaction function
 	UFUNCTION()

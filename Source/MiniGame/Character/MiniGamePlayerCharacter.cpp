@@ -5,13 +5,9 @@
 
 #include "MiniGameAbilitySet.h"
 #include "MiniGameAbilitySystemComponent.h"
-#include "MoverComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
-// define gameMode tag
-UE_DEFINE_GAMEPLAY_TAG(TAG_MINIGAME_GAMEMODE_2DGAME, "MiniGame.GameMode.2DGame");
-UE_DEFINE_GAMEPLAY_TAG(TAG_MINIGAME_GAMEMODE_3DGAME, "MiniGame.GameMode.3DGame");
+#include "MiniGame/Logging/MiniGameLogChannels.h"
 
 
 AMiniGamePlayerCharacter::AMiniGamePlayerCharacter(const FObjectInitializer& ObjectInitializer)
@@ -76,6 +72,48 @@ void AMiniGamePlayerCharacter::UnPossessed()
 	Super::UnPossessed();
 
 	ResetHUD();
+}
+
+void AMiniGamePlayerCharacter::ChangeSkinBySkinIndex_Implementation(int32 SkinIndex)
+{
+}
+
+void AMiniGamePlayerCharacter::ChangeToSkin(int32 SkinIndex)
+{
+	// get attached mesh compoent
+	USkeletalMeshComponent* MeshComponent = Cast<USkeletalMeshComponent>(GetMesh()->GetChildComponent(0));
+	if (nullptr == MeshComponent)
+	{
+		MeshComponent = Cast<USkeletalMeshComponent>(GetMesh());
+		if (nullptr == MeshComponent)
+		{
+			UE_LOG(LogMiniGameCharacter, Warning, TEXT("[%s] Skeletal and chlid USkeletalMeshComponent is not setting! "), *GetNameSafe(this));
+			return;
+		}
+	}
+	
+	switch (SkinMode)
+	{
+	case ESkinMode::Material:
+		if (false == ensure(MaterialArray.IsValidIndex(SkinIndex)))
+		{
+			UE_LOG(LogMiniGameCharacter, Warning, TEXT("SkinIndex [%d] is overflod in MaterialArray at [%s]"), SkinIndex, *GetNameSafe(this));
+			return;
+		}
+
+		MeshComponent->SetMaterial(0, MaterialArray[SkinIndex]);
+		break;
+		
+	case ESkinMode::Mesh:
+		if (false == ensure(SkeletalMeshArray.IsValidIndex(SkinIndex)))
+		{
+			UE_LOG(LogMiniGameCharacter, Warning, TEXT("SkinIndex [%d] is overflod in SkeletalMeshArray at [%s]"), SkinIndex, *GetNameSafe(this));
+			return;
+		}
+		
+		MeshComponent->SetSkeletalMesh(SkeletalMeshArray[SkinIndex]);
+		break;
+	}
 }
 
 void AMiniGamePlayerCharacter::CreateHUD()

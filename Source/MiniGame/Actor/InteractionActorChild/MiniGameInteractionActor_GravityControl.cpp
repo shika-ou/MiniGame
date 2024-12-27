@@ -51,10 +51,7 @@ void AMiniGameInteractionActor_GravityControl::OnBoxBeginOverlap(UPrimitiveCompo
 
 	SourceGravityVector = TargetCharacterMovementComponent->GetGravityDirection();
 
-	//UPrimitiveComponent* ActorPrimitive = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent());
-	// check(ActorPrimitve);	
-	
-	//OtherComp->AddForce(GravityForce);
+	Super::OnBoxBeginOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
 
 void AMiniGameInteractionActor_GravityControl::OnBoxEndOverlap(UPrimitiveComponent* OverlappedComponent,

@@ -40,7 +40,7 @@ public class MiniGameAbilities : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore",
+				"SlateCore", "MiniGameFramework",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

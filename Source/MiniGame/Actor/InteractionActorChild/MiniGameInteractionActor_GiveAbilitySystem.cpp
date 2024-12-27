@@ -7,6 +7,7 @@
 #include "MiniGameAbilitySet.h"
 #include "MiniGameAbilitySystemComponent.h"
 #include "MiniGame/Character/MiniGamePlayerCharacter.h"
+#include "MiniGame/Logging/MiniGameLogChannels.h"
 
 
 // Sets default values
@@ -34,6 +35,12 @@ void AMiniGameInteractionActor_GiveAbilitySystem::OnBoxBeginOverlap(UPrimitiveCo
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 	const FHitResult& SweepResult)
 {
+	if (false == ensure(AbilitySet))
+	{
+		UE_LOG(LogMiniInteraction, Warning, TEXT("InterActionActor_GiveAbilitySystem [%s] AbilitySet is not Settings"), *GetNameSafe(this));
+		return;
+	}
+	
 	if (AMiniGamePlayerCharacter* MiniGamePlayerCharacter = Cast<AMiniGamePlayerCharacter>(OtherActor))
 	{
 		if (UMiniGameAbilitySystemComponent* TargetAsc = Cast<UMiniGameAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(MiniGamePlayerCharacter)))
@@ -41,5 +48,7 @@ void AMiniGameInteractionActor_GiveAbilitySystem::OnBoxBeginOverlap(UPrimitiveCo
 			AbilitySet->GiveToAbilitySystem(TargetAsc, nullptr);
 		}
 	}
+
+	Super::OnBoxBeginOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
 

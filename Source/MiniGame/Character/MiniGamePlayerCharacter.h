@@ -3,18 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NativeGameplayTags.h"
 #include "GameFramework/Character.h"
 #include "MiniGamePlayerCharacter.generated.h"
 
 class UMiniGameAbilitySet;
 class UMiniGameAbilitySystemComponent;
 class UUserWidget;
-// declare gameMode tag
-MINIGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MINIGAME_GAMEMODE_2DGAME);
-MINIGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MINIGAME_GAMEMODE_3DGAME);
 
-struct FGameplayTag;
+UENUM(BlueprintType)
+enum ESkinMode
+{
+	Mesh,
+	Material,
+};
 
 UCLASS()
 class MINIGAME_API AMiniGamePlayerCharacter : public ACharacter
@@ -43,11 +44,8 @@ public:
 	virtual void UnPossessed() override;
 
 protected:
-	
-	/** the tag for distinction that 2DGame and 3DGame */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="GameMode")
-	FGameplayTag GameModeTag;
-
+	///////////////////////////////////
+	/// Strafe
 	/** the bool for camera whether the camera should stay behind the character */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="MiniGame|Movement")
 	uint8 bWantsToStrafe;
@@ -58,13 +56,28 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="MiniGame|Camera")
 	FRotator NoFallingRotationRate;
 
+	///////////////////////////////
+	/// HUD
 	// HUD blueprint class
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="MiniGame|HUD")
 	TSubclassOf<UUserWidget> HUDClass;
-	
+
+	///////////////////////////////
+	/// Ability
 	// Ability Set to grant to the pawn on initialization
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MiniGame|Abilities")
 	TObjectPtr<UMiniGameAbilitySet> AbilitySet;
+
+	//////////////////////////////////
+	/// Skin
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MiniGame|Skin")
+	TEnumAsByte<ESkinMode> SkinMode;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MiniGame|Skin", meta=(EditCondition="SkinMode==Material"))
+	TArray<TObjectPtr<UMaterialInstance>> MaterialArray;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MiniGame|Skin", meta=(EditCondition="SkinMode==Mesh"))
+	TArray<TObjectPtr<USkeletalMesh>> SkeletalMeshArray;
 
 private:
 	/** Ensures Ability Sets are only granted upon first Possess only */
@@ -77,12 +90,19 @@ private:
 	TObjectPtr <UMiniGameAbilitySystemComponent> AbilitySystemComponent;
 
 public:
-	UFUNCTION(BlueprintCallable)
-	FGameplayTag GetGameModeTag() { return GameModeTag; }
-
+	// get character asc
 	UFUNCTION(BlueprintCallable)
 	UMiniGameAbilitySystemComponent* GetMiniGameAbilitySystemComponent() { return AbilitySystemComponent; }
+	
+	// change player skin from actor
+	UFUNCTION(BlueprintNativeEvent)
+	void ChangeSkinBySkinIndex(int32 SkinIndex);
+	
+	// change 
+	UFUNCTION(BlueprintCallable)
+	void ChangeToSkin(int32 SkinIndex);
 
+	
 	
 private:
 	void CreateHUD();

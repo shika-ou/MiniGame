@@ -3,10 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NativeGameplayTags.h"
 #include "GameFramework/PlayerController.h"
 #include "MiniGamePlayerController.generated.h"
 
 class UInputMappingContext;
+
+// declare gameMode tag
+MINIGAMEFRAMEWORK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MINIGAME_GAMEMODE_2DGAME);
+MINIGAMEFRAMEWORK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MINIGAME_GAMEMODE_3DGameKeepCamera);
+MINIGAMEFRAMEWORK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MINIGAME_GAMEMODE_3DGAME);
+
 /**
  * 
  */
@@ -35,4 +42,24 @@ protected:
 
 	/** If true, menu input mappings are active */
 	bool bMenuMappingsActive = false;
+
+
+	///////////////////////////////
+	/// Camera Mode
+protected:
+	/** the tag for distinction that 2DGame and 3DGame */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag CameraModeTag;
+
+public:
+	void SetCameraModeTag(FGameplayTag NewCamMode) { CameraModeTag = NewCamMode; }
+	
+	void ChangeCameraGameModeByTag();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void ChangeCameraMode();
+
+	virtual void OnPossess(APawn* InPawn) override;
+
+	
 };

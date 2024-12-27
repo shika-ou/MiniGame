@@ -3,8 +3,12 @@
 
 #include "MiniGameInteractionActor.h"
 
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Components/BoxComponent.h"
 #include "Curves/CurveVector.h"
+#include "MiniGame/Character/MiniGamePlayerCharacter.h"
+#include "MiniGame/Logging/MiniGameLogChannels.h"
 
 
 AMiniGameInteractionActor::AMiniGameInteractionActor(const FObjectInitializer& ObjectInitializer)
@@ -60,9 +64,23 @@ void AMiniGameInteractionActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 
-	UpdateMovementCurve(EMovementType::Location, DeltaTime, LocationMovementStruct, CurrentActorMovementPlayTime_Location, bLocationMovementIsOvered);
-	UpdateMovementCurve(EMovementType::Rotation, DeltaTime, RotationMovementStruct, CurrentActorMovementPlayTime_Rotation, bRotationMovementIsOvered);
-	UpdateMovementCurve(EMovementType::Scale, DeltaTime, ScaleMovementStruct, CurrentActorMovementPlayTime_Scale, bScaleMovementIsOvered);
+	UpdateActorMovement(DeltaTime);
+}
+
+void AMiniGameInteractionActor::UpdateActorMovement(float DeltaTime)
+{
+	if (bEnableActorMovement)
+	{
+		if (nullptr == LocationMovementStruct.Curve && nullptr == RotationMovementStruct.Curve && nullptr == ScaleMovementStruct.Curve)
+		{
+			UE_LOG(LogMiniGameCharacter, Warning, TEXT("Actor [%s] MovementStruct Curve is not valid!"), *GetNameSafe(this));
+			return;
+		}
+		
+		UpdateMovementCurve(EMovementType::Location, DeltaTime, LocationMovementStruct, CurrentActorMovementPlayTime_Location, bLocationMovementIsOvered);
+		UpdateMovementCurve(EMovementType::Rotation, DeltaTime, RotationMovementStruct, CurrentActorMovementPlayTime_Rotation, bRotationMovementIsOvered);
+		UpdateMovementCurve(EMovementType::Scale, DeltaTime, ScaleMovementStruct, CurrentActorMovementPlayTime_Scale, bScaleMovementIsOvered);
+	}
 }
 
 void AMiniGameInteractionActor::UpdateMovementCurve(const EMovementType MovementType, const float& DeltaTime, const FActorMovementStruct& MovementStruct, float& CurrentPlayTime, bool& bMovementIsOvered) const
@@ -74,7 +92,7 @@ void AMiniGameInteractionActor::UpdateMovementCurve(const EMovementType Movement
 	}
 
 	// check curve is valid
-	if (false == ensure(MovementStruct.Curve))
+	if (nullptr == MovementStruct.Curve)
 	{
 		//static const UEnum* EnumPtr = StaticEnum<EMovementType>();
 		//UE_LOG(LogMiniGameCharacter, Warning, TEXT("MovementStruct %s Curve is not valid!"), EnumPtr ? *(EnumPtr->GetNameByValue(MovementType).ToString()) : *(FString::FromInt((int8)MovementType)));
@@ -120,10 +138,29 @@ void AMiniGameInteractionActor::UpdateMovementCurve(const EMovementType Movement
 void AMiniGameInteractionActor::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// only apply for target class	
 	if (false == OtherActor->IsA(OverlayTargetClass))
 	{
 		return;
+	}
+
+	if (bShouldChangeSkinAfterOverlay)
+	{
+		if (AMiniGamePlayerCharacter* MiniGamePlayerCharacter = Cast<AMiniGamePlayerCharacter>(OtherActor))
+		{
+			MiniGamePlayerCharacter->ChangeSkinBySkinIndex(SkinIndex);
+		}
+	}
+
+	
+ 	if (bShouldDestroyActorAfterInterAction)
+	{
+		if (DestroyEffect)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAttached(DestroyEffect, StaticMeshComponent, FName("Default"), GetActorLocation(), GetActorRotation(), EAttachLocation::Type::KeepRelativeOffset, true);
+		}
+
+ 		SetActorTickEnabled(false);
+ 		Destroy();
 	}
 }
 
