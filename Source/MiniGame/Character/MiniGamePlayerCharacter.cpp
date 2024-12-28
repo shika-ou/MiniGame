@@ -5,6 +5,7 @@
 
 #include "MiniGameAbilitySet.h"
 #include "MiniGameAbilitySystemComponent.h"
+#include "MiniGamePlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MiniGame/Logging/MiniGameLogChannels.h"
@@ -65,6 +66,8 @@ void AMiniGamePlayerCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	CreateHUD();
+
+	ChangeCameraModeByCameraTag();
 }
 
 void AMiniGamePlayerCharacter::UnPossessed()
@@ -152,5 +155,17 @@ void AMiniGamePlayerCharacter::SetRotationRateByFallingState()
 	check(MoverComponent);
 	
 	MoverComponent->RotationRate = MoverComponent->IsFalling() ? FallingRotationRate : NoFallingRotationRate;
+}
+
+void AMiniGamePlayerCharacter::ChangeCameraModeByCameraTag() const
+{
+	AMiniGamePlayerController* MiniGamePlayerController = Cast<AMiniGamePlayerController>(GetController());
+	if (false == ensure(MiniGamePlayerController))
+	{
+		UE_LOG(LogMiniGameCharacter, Warning, TEXT("[%s] PlayerController is not valid!"), *GetNameSafe(this));
+		return;
+	}
+
+	MiniGamePlayerController->SetCameraModeTag(CameraModeTag);
 }
 

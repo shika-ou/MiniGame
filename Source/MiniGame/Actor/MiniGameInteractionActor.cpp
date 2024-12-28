@@ -53,6 +53,7 @@ void AMiniGameInteractionActor::BeginPlay()
 	MeshOriginalTransform = StaticMeshComponent->GetComponentTransform();
 	
 	// bind box event
+	check(BoxComponent);
 	BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AMiniGameInteractionActor::OnBoxBeginOverlap);
 	BoxComponent->OnComponentEndOverlap.AddDynamic(this, &AMiniGameInteractionActor::OnBoxEndOverlap);
 	

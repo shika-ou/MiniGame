@@ -1,8 +1,5 @@
 ﻿#include "MiniGamePlayerController.h"
-
 #include "EnhancedInputSubsystems.h"
-#include "MiniGamePlayerStart.h"
-#include "GameFramework/Character.h"
 
 // define gameMode tag
 UE_DEFINE_GAMEPLAY_TAG(TAG_MINIGAME_GAMEMODE_2DGAME, "MiniGame.GameMode.2DGame");
@@ -32,19 +29,6 @@ void AMiniGamePlayerController::BeginPlay()
 	}
 }
 
-void AMiniGamePlayerController::ChangeCameraGameModeByTag()
-{
-	AMiniGamePlayerStart* MiniGamePlayerStart = Cast<AMiniGamePlayerStart>(StartSpot);
-	if (nullptr == MiniGamePlayerStart)
-	{
-		return;
-	}
-
-	CameraModeTag = MiniGamePlayerStart->GetCameraModeTag();
-
-	ChangeCameraMode();
-}
-
 void AMiniGamePlayerController::ChangeCameraMode_Implementation()
 {
 }
@@ -53,17 +37,5 @@ void AMiniGamePlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	check(StartSpot.IsValid());
-
-	ChangeCameraGameModeByTag();
-
-	/*ACharacter* ControllerCharacter = Cast<ACharacter>(GetPawn());
-	if (nullptr == ControllerCharacter)
-	{
-		return;
-	}
-	
-	ControllerCharacter->SetActorScale3D(StartSpot->GetActorScale());*/
-	/*UPrimitiveComponent* rootcom = Cast<UPrimitiveComponent>(ControllerCharacter->GetRootComponent());
-	rootcom->SetSimulatePhysics(false);*/
+	ChangeCameraMode();
 }

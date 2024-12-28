@@ -52,11 +52,10 @@ protected:
 	FGameplayTag CameraModeTag;
 
 public:
+	UFUNCTION(BlueprintCallable)
 	void SetCameraModeTag(FGameplayTag NewCamMode) { CameraModeTag = NewCamMode; }
-	
-	void ChangeCameraGameModeByTag();
 
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void ChangeCameraMode();
 
 	virtual void OnPossess(APawn* InPawn) override;

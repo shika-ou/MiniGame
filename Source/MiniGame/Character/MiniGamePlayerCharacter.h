@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Character.h"
 #include "MiniGamePlayerCharacter.generated.h"
 
@@ -65,9 +66,16 @@ protected:
 	///////////////////////////////
 	/// Ability
 	// Ability Set to grant to the pawn on initialization
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MiniGame|Abilities")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MiniGame|Abilities")
 	TObjectPtr<UMiniGameAbilitySet> AbilitySet;
 
+	/////////////////////////////////
+	/// CameraMode
+	// the tag for change camera mode
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MiniGame|CameraMode")
+	FGameplayTag CameraModeTag;
+
+	
 	//////////////////////////////////
 	/// Skin
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MiniGame|Skin")
@@ -114,4 +122,6 @@ private:
 
 	UFUNCTION(BlueprintCallable)
 	void SetRotationRateByFallingState();
+
+	void ChangeCameraModeByCameraTag() const;
 };

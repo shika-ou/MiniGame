@@ -75,11 +75,11 @@ protected:
 	///////////////////////////////
 	/// component
 	// actor static mesh
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniGame", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MiniGame", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
 
 	// actor box comp for interaction with player
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MiniGame", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MiniGame", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBoxComponent> BoxComponent;
 
 	///////////////////
