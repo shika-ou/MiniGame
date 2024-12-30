@@ -87,6 +87,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MiniGame|Skin", meta=(EditCondition="SkinMode==Mesh"))
 	TArray<TObjectPtr<USkeletalMesh>> SkeletalMeshArray;
 
+public:
+	/////////////////////////////////
+	/// Hit Anim
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MiniGame|HitReation")
+	TObjectPtr<UAnimMontage> HitMontage;
+
 private:
 	/** Ensures Ability Sets are only granted upon first Possess only */
 	bool bInitializedAbilities;
