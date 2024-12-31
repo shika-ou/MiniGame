@@ -44,6 +44,11 @@ void AMiniGameInteractionActor_Transformation::TransformToNewChracter_Implementa
 
 void AMiniGameInteractionActor_Transformation::SpawnAndPossessNewCharacter(AActor* OldCharacter)
 {
+	if (OldCharacter->IsA(TransformCharacterClass))
+	{
+		return;
+	}
+	
 	APawn* TargetPawn = Cast<APawn>(OldCharacter);
 	if (nullptr == TargetPawn)
 	{
