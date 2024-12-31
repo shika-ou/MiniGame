@@ -3,6 +3,7 @@
 
 #include "MiniGamePlayerCharacter.h"
 
+#include "AIController.h"
 #include "MiniGameAbilitySet.h"
 #include "MiniGameAbilitySystemComponent.h"
 #include "MiniGamePlayerController.h"
@@ -65,6 +66,11 @@ void AMiniGamePlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
+	if (NewController->IsA(AAIController::StaticClass()))
+	{
+		return;
+	}
+	
 	CreateHUD();
 
 	ChangeCameraModeByCameraTag();
@@ -74,6 +80,16 @@ void AMiniGamePlayerCharacter::UnPossessed()
 {
 	Super::UnPossessed();
 
+	if (nullptr == Controller)
+	{
+		return;
+	}
+
+	if (Controller->IsA(AAIController::StaticClass()))
+	{
+		return;
+	}
+	
 	ResetHUD();
 }
 
