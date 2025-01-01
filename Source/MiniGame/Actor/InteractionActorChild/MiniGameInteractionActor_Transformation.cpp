@@ -33,6 +33,11 @@ void AMiniGameInteractionActor_Transformation::OnBoxBeginOverlap(UPrimitiveCompo
                                                                  AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                                                  const FHitResult& SweepResult)
 {
+	if (OtherActor->IsA(TransformCharacterClass))
+	{
+		return;
+	}
+	
 	TransformToNewChracter(OtherActor);
 	
 	//Super::OnBoxBeginOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
@@ -44,10 +49,7 @@ void AMiniGameInteractionActor_Transformation::TransformToNewChracter_Implementa
 
 void AMiniGameInteractionActor_Transformation::SpawnAndPossessNewCharacter(AActor* OldCharacter)
 {
-	if (OldCharacter->IsA(TransformCharacterClass))
-	{
-		return;
-	}
+
 	
 	APawn* TargetPawn = Cast<APawn>(OldCharacter);
 	if (nullptr == TargetPawn)

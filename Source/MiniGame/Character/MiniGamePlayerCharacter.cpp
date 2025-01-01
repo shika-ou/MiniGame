@@ -79,16 +79,6 @@ void AMiniGamePlayerCharacter::PossessedBy(AController* NewController)
 void AMiniGamePlayerCharacter::UnPossessed()
 {
 	Super::UnPossessed();
-
-	if (nullptr == Controller)
-	{
-		return;
-	}
-
-	if (Controller->IsA(AAIController::StaticClass()))
-	{
-		return;
-	}
 	
 	ResetHUD();
 }
