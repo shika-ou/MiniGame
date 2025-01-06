@@ -86,7 +86,16 @@ bool UMiniGameAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCa
 	}
 
 #endif
-
+	static FProperty *HealthProperty = FindFieldChecked<FProperty>(UMiniGameAttributeSet::StaticClass(), GET_MEMBER_NAME_CHECKED(UMiniGameAttributeSet, Health));
+	static FProperty *DamageProperty = FindFieldChecked<FProperty>(UMiniGameAttributeSet::StaticClass(), GET_MEMBER_NAME_CHECKED(UMiniGameAttributeSet, Damage));
+	if (Data.EvaluatedData.Attribute == DamageProperty)
+	{
+		if (Health <= 0.f)
+		{
+			return false;
+		}
+	}
+	
 	return true;
 }
 
