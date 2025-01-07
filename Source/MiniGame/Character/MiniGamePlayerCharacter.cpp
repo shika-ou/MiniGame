@@ -125,6 +125,17 @@ void AMiniGamePlayerCharacter::ChangeToSkin(int32 SkinIndex)
 	}
 }
 
+void AMiniGamePlayerCharacter::ChangeGravityDirectionByNewDirection(FVector NewDirection)
+{
+	UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent());
+	if (false == ensure(CharacterMovementComponent))
+	{
+		UE_LOG(LogMiniGameCharacter, Warning, TEXT("Character [%s] Movement Component is not valid!"), *GetNameSafe(this));
+	}
+
+	CharacterMovementComponent->SetGravityDirection(NewDirection);
+}
+
 void AMiniGamePlayerCharacter::CreateHUD()
 {
 	HUD = CreateWidget(GetWorld(), HUDClass);
@@ -136,7 +147,7 @@ void AMiniGamePlayerCharacter::CreateHUD()
 
 void AMiniGamePlayerCharacter::ResetHUD()
 {
-	if (ensure(HUD))
+	if (HUD)
 	{
 		HUD->RemoveFromParent();
 

@@ -116,6 +116,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ChangeToSkin(int32 SkinIndex);
 
+	// change the gravity direction
+	UFUNCTION(BlueprintCallable)
+	void ChangeGravityDirectionByNewDirection(FVector NewDirection);
+
 	
 	
 private:
