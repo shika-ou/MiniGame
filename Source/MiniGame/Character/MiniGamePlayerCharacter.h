@@ -134,4 +134,17 @@ private:
 	void SetRotationRateByFallingState();
 
 	void ChangeCameraModeByCameraTag() const;
+
+
+	/////////////////////////////////
+	/// AnimNotify
+private:
+	TArray<FVector> LineMultiPoints;
+	
+	TArray<AActor*> HitActors;
+
+public:
+	TArray<FVector>& GetLineMultiPoints() { return LineMultiPoints; }
+	
+	TArray<AActor*>& GetHitActors() { return HitActors; }
 };
