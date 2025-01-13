@@ -110,10 +110,10 @@ void UMiniGameAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffe
 	if (DamageProperty == ModifiedProperty)
 	{
 		// Anytime Damage is applied with 'Damage.Fire' tag, there is a chance to apply a burning DOT
-		if (Data.EffectSpec.CapturedSourceTags.GetAggregatedTags()->HasTag( FGameplayTag::RequestGameplayTag(FName(TEXT("FireDamage")))))
+		/*if (Data.EffectSpec.CapturedSourceTags.GetAggregatedTags()->HasTag( FGameplayTag::RequestGameplayTag(FName(TEXT("FireDamage")))))
 		{
 			// Logic to rand() a burning DOT, if successful, apply DOT GameplayEffect to the target
-		}
+		}*/
 
 		// Treat damage as minus health
 		Health -= Damage;
