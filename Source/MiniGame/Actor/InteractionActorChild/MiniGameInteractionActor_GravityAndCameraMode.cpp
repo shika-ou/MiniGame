@@ -69,7 +69,7 @@ void AMiniGameInteractionActor_GravityAndCameraMode::ChangeCameraModeByPawn(AAct
 		AMiniGamePlayerController* MiniGamePlayerController = Cast<AMiniGamePlayerController>(OverlayPawn->GetController());
 		if (false == ensure(MiniGamePlayerController))
 		{
-			UE_LOG(LogMiniInteraction, Warning, TEXT("[%s] PlayerController is not valid!"), *GetNameSafe(OverlayPawn));
+			UE_LOG(LogMiniGameActor, Warning, TEXT("[%s] PlayerController is not valid!"), *GetNameSafe(OverlayPawn));
 			return;
 		}
 

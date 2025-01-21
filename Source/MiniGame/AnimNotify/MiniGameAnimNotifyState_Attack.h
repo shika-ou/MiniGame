@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "MiniGameAnimNotifyState.generated.h"
+#include "MiniGameAnimNotifyState_Attack.generated.h"
 
 class UGameplayEffect;
 /**
  * 
  */
 UCLASS()
-class MINIGAME_API UMiniGameAnimNotifyState : public UAnimNotifyState
+class MINIGAME_API UMiniGameAnimNotifyState_Attack : public UAnimNotifyState
 {
 	GENERATED_BODY()
 

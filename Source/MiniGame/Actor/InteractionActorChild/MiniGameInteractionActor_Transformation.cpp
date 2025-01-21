@@ -66,7 +66,7 @@ void AMiniGameInteractionActor_Transformation::SpawnAndPossessNewCharacter(AActo
 	AMiniGamePlayerCharacter* NewMiniGamePlayerCharacter = GetWorld()->SpawnActor<AMiniGamePlayerCharacter>(TransformCharacterClass, GetActorLocation(), MiniGamePlayerController->GetControlRotation());
 	if (nullptr == NewMiniGamePlayerCharacter)
 	{
-		UE_LOG(LogMiniInteraction, Warning, TEXT("Transformation spawn new actor [%s] was failed!"), *GetNameSafe(this));
+		UE_LOG(LogMiniGameActor, Warning, TEXT("Transformation spawn new actor [%s] was failed!"), *GetNameSafe(this));
 		return;
 	}
 

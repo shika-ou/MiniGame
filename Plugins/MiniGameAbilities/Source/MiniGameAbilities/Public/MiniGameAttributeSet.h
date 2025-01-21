@@ -3,8 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
 #include "MiniGameAttributeSet.generated.h"
+
+#define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
+GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
+GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
+GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
+
+#define ATTRIBUTE_ACCESSORS_WITH_CUSTOM_INIT(ClassName, PropertyName) \
+GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
+GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) 
 
 /**
  * 
@@ -18,13 +30,15 @@ public:
 	// Sets default values for this actor's properties
 	UMiniGameAttributeSet(const FObjectInitializer& ObjectInitializer);
 
-protected:
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "AttributeTest", meta = (HideFromModifiers))			// You can't make a GameplayEffect modify Health Directly (go through)
-	mutable float	MaxHealth;
+	/** Current health available to the character */
+	UPROPERTY(BlueprintReadOnly, Category = "MiniGameAttribute", ReplicatedUsing = OnRep_Health)
+	FGameplayAttributeData Health;
+	ATTRIBUTE_ACCESSORS(ThisClass, Health);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "AttributeTest", meta = (HideFromModifiers))			// You can't make a GameplayEffect modify Health Directly (go through)
-	mutable float	Health;
+	/** Max health available to the character */
+	UPROPERTY(BlueprintReadOnly, Category = "MiniGameAttribute", ReplicatedUsing = OnRep_Health)
+	FGameplayAttributeData MaxHealth;
+	ATTRIBUTE_ACCESSORS(ThisClass, MaxHealth);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "AttributeTest")
 	mutable FGameplayAttributeData	Mana;
@@ -71,7 +85,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AttributeTest")
 	mutable float	NoStackAttribute;
 
+protected:
+	
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData &Data) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData &Data) override;
+
+protected:
+	UFUNCTION()
+	void OnRep_Health(const FGameplayAttributeData& OldValue);
 };
 

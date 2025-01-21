@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "MiniGameAnimNotifyState.h"
+#include "MiniGameAnimNotifyState_Attack.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
@@ -9,13 +9,13 @@
 #include "MiniGame/Character/MiniGamePlayerCharacter.h"
 #include "MiniGame/Logging/MiniGameLogChannels.h"
 
-void UMiniGameAnimNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UMiniGameAnimNotifyState_Attack::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
                                            float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 }
 
-void UMiniGameAnimNotifyState::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UMiniGameAnimNotifyState_Attack::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
@@ -23,7 +23,7 @@ void UMiniGameAnimNotifyState::NotifyTick(USkeletalMeshComponent* MeshComp, UAni
 	SweepActorAndApplyGameEffect(MeshComp);
 }
 
-void UMiniGameAnimNotifyState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UMiniGameAnimNotifyState_Attack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
@@ -39,7 +39,7 @@ void UMiniGameAnimNotifyState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnim
 	MeshMiniPlayerCharacter->GetLineMultiPoints().Empty();
 }
 
-void UMiniGameAnimNotifyState::SweepActorAndApplyGameEffect(USkeletalMeshComponent* MeshComp) const
+void UMiniGameAnimNotifyState_Attack::SweepActorAndApplyGameEffect(USkeletalMeshComponent* MeshComp) const
 {
 	if (false == ensure(IsValid(GameplayEffect)))
 	{
@@ -104,7 +104,7 @@ void UMiniGameAnimNotifyState::SweepActorAndApplyGameEffect(USkeletalMeshCompone
 	}
 }
 
-bool UMiniGameAnimNotifyState::GetHitResults(USkeletalMeshComponent* MeshComp, TArray<FHitResult>& OutHits) const
+bool UMiniGameAnimNotifyState_Attack::GetHitResults(USkeletalMeshComponent* MeshComp, TArray<FHitResult>& OutHits) const
 {
 	bool Result = false;
 
@@ -114,7 +114,7 @@ bool UMiniGameAnimNotifyState::GetHitResults(USkeletalMeshComponent* MeshComp, T
 	return Result;
 }
 
-bool UMiniGameAnimNotifyState::GetLineTraceResults(USkeletalMeshComponent* MeshComp, TArray<FHitResult>& OutHitResult) const
+bool UMiniGameAnimNotifyState_Attack::GetLineTraceResults(USkeletalMeshComponent* MeshComp, TArray<FHitResult>& OutHitResult) const
 {
 	if (nullptr == MeshComp)
 	{
@@ -170,7 +170,7 @@ bool UMiniGameAnimNotifyState::GetLineTraceResults(USkeletalMeshComponent* MeshC
 	return Result;
 }
 
-void UMiniGameAnimNotifyState::UpdateCharacterLinePoints(USkeletalMeshComponent* MeshComp, TArray<FVector>& LinePoints) const
+void UMiniGameAnimNotifyState_Attack::UpdateCharacterLinePoints(USkeletalMeshComponent* MeshComp, TArray<FVector>& LinePoints) const
 {
 	FVector StartSocketLocation = MeshComp->GetSocketLocation(StartSocketName);
 	FVector EndSocketLocation = MeshComp->GetSocketLocation(EndSocketName);
@@ -192,7 +192,7 @@ void UMiniGameAnimNotifyState::UpdateCharacterLinePoints(USkeletalMeshComponent*
 	}
 }
 
-bool UMiniGameAnimNotifyState::GetSphereTraceResults(USkeletalMeshComponent* MeshComp,
+bool UMiniGameAnimNotifyState_Attack::GetSphereTraceResults(USkeletalMeshComponent* MeshComp,
                                                      TArray<FHitResult>& OutHitResult) const
 {
 	if (nullptr == MeshComp)

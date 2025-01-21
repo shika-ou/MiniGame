@@ -90,7 +90,7 @@ bool UMiniGameAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCa
 	static FProperty *DamageProperty = FindFieldChecked<FProperty>(UMiniGameAttributeSet::StaticClass(), GET_MEMBER_NAME_CHECKED(UMiniGameAttributeSet, Damage));
 	if (Data.EvaluatedData.Attribute == DamageProperty)
 	{
-		if (Health <= 0.f)
+		if (GetHealth() <= 0.f)
 		{
 			return false;
 		}
@@ -116,7 +116,7 @@ void UMiniGameAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffe
 		}*/
 
 		// Treat damage as minus health
-		Health -= Damage;
+		SetHealth(GetHealth() - Damage);
 		Damage = 0.f;
 
 		// Check for Death?
@@ -130,7 +130,6 @@ void UMiniGameAttributeSet::GetLifetimeReplicatedProps(TArray< FLifetimeProperty
 {
 	DISABLE_ALL_CLASS_REPLICATED_PROPERTIES(UMiniGameAttributeSet, EFieldIteratorFlags::IncludeSuper);
 	
-	/*
 	DOREPLIFETIME( UMiniGameAttributeSet, MaxHealth);
 	DOREPLIFETIME( UMiniGameAttributeSet, Health);
 	DOREPLIFETIME( UMiniGameAttributeSet, Mana);
@@ -147,6 +146,9 @@ void UMiniGameAttributeSet::GetLifetimeReplicatedProps(TArray< FLifetimeProperty
 	DOREPLIFETIME( UMiniGameAttributeSet, LifeSteal);
 
 	DOREPLIFETIME( UMiniGameAttributeSet, Strength);
-	*/
 }
 
+void UMiniGameAttributeSet::OnRep_Health(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(ThisClass, Health, OldValue);
+}

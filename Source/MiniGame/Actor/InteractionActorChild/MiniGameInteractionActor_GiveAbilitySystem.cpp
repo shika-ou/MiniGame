@@ -37,7 +37,7 @@ void AMiniGameInteractionActor_GiveAbilitySystem::OnBoxBeginOverlap(UPrimitiveCo
 {
 	if (false == ensure(AbilitySet))
 	{
-		UE_LOG(LogMiniInteraction, Warning, TEXT("InterActionActor_GiveAbilitySystem [%s] AbilitySet is not Settings"), *GetNameSafe(this));
+		UE_LOG(LogMiniGameActor, Warning, TEXT("InterActionActor_GiveAbilitySystem [%s] AbilitySet is not Settings"), *GetNameSafe(this));
 		return;
 	}
 	
