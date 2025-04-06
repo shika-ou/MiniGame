@@ -10,7 +10,7 @@ public class MiniGame : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore","Mover", "EnhancedInput", "GameplayTags", "GameplayAbilities", "UMG", "AIModule"});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "MiniGameFramework", "MiniGameAbilities", "CommonUI", "Niagara", "Niagara" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "MiniGameFramework", "MiniGameAbilities", "CommonUI", "Niagara", "Niagara", "GameFeatures"});
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

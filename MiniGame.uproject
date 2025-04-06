@@ -45,6 +45,14 @@
 		{
 			"Name": "GameplayStateTree",
 			"Enabled": true
+		},
+		{
+			"Name": "GameFeatures",
+			"Enabled": true
+		},
+		{
+			"Name": "GameFeature_Combat",
+			"Enabled": true
 		}
 	]
 }
