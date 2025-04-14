@@ -53,6 +53,10 @@
 		{
 			"Name": "GameFeature_Combat",
 			"Enabled": true
+		},
+		{
+			"Name": "GameFeature_OKAMI",
+			"Enabled": true
 		}
 	]
 }
