@@ -88,16 +88,14 @@ void UCombatLockComponent::SearchAndLockTarget()
 
 		if (ClosestTarget)
 		{
-			LockedTarget = ClosestTarget;
-			bIsLockOn = true;
+			UpdateLockTarget(ClosestTarget);
 		}
 	}
 }
 
 void UCombatLockComponent::UnlockTarget()
 {
-	bIsLockOn = false;
-	LockedTarget = nullptr;
+	UpdateLockTarget(nullptr);
 }
 
 void UCombatLockComponent::UpdateCameraRotation(float DeltaTime)
@@ -136,4 +134,15 @@ void UCombatLockComponent::UpdateCameraRotation(float DeltaTime)
 	FRotator CurrentRotator = PlayerController->GetControlRotation();
 	FRotator NewControllerRotation = FMath::RInterpTo(CurrentRotator, FRotator(CameraPitch, DesiredRotator.Yaw, 0.f), DeltaTime, 8.f);
 	PlayerController->SetControlRotation(NewControllerRotation);
+}
+
+void UCombatLockComponent::UpdateLockTarget(AActor* NewLockedTarget)
+{
+	bIsLockOn = NewLockedTarget != nullptr;
+	LockedTarget = NewLockedTarget ? NewLockedTarget : nullptr;
+}
+
+AActor* UCombatLockComponent::GetLockedTarget() const
+{
+	return LockedTarget;
 }

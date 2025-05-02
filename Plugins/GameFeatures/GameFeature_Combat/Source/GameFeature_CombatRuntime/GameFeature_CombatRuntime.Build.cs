@@ -25,7 +25,7 @@ public class GameFeature_CombatRuntime : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
+				"Core", "EngineCameras", "EngineCameras",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -38,6 +38,8 @@ public class GameFeature_CombatRuntime : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"TemplateSequence",
+				"MovieScene"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

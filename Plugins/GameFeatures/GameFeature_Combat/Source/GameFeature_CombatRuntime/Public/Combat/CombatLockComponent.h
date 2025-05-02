@@ -55,4 +55,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Combat Lock")
 	void UpdateCameraRotation(float DeltaTime);
+	
+	void UpdateLockTarget(AActor* NewLockedTarget);
+	
+	UFUNCTION(BlueprintCallable, Category = "Combat Lock")
+	AActor* GetLockedTarget() const;
 };
