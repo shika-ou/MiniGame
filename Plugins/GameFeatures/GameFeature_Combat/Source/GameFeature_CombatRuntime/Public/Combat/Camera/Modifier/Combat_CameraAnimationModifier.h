@@ -30,7 +30,7 @@ class GAMEFEATURE_COMBATRUNTIME_API UCombat_CameraAnimationModifier : public UCa
 	void CombatTickActiveAnimation(float DeltaTime, FMinimalViewInfo& InOutPOV);
 	
 	void CombatTickAnimation(FActiveCameraAnimationInfo& CameraAnimation, float DeltaTime, FMinimalViewInfo& InOutPOV);
-	void CombatDeactivateCameraAnimation(FActiveCameraAnimationInfo& ActiveAnimation);
+	void CombatDeactivateCameraAnimation(const FActiveCameraAnimationInfo& ActiveCameraAnimationInfo);
 
 	virtual bool ModifyCamera(float DeltaTime, FMinimalViewInfo& InOutPOV) override;
 

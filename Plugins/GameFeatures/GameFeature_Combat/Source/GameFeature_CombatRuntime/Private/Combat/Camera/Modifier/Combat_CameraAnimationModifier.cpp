@@ -34,7 +34,7 @@ void UCombat_CameraAnimationModifier::CombatTickActiveAnimation(float DeltaTime,
             {
                 // Here animation has just finished (ease out has completed as well)
                 CombatDeactivateCameraAnimation(ActiveAnimation);
-                OnAnimationEnded.ExecuteIfBound(ActiveAnimation.Sequence, false);
+                //OnAnimationEnded.ExecuteIfBound(ActiveAnimation.Sequence, false);
             }
         }
     }
@@ -83,7 +83,7 @@ void UCombat_CameraAnimationModifier::CombatTickAnimation(FActiveCameraAnimation
             if (!bWasEasingOut)
             {
                 // Here animation has just started easing out but hasn't finished yet
-                OnAnimationEaseOutStarted.ExecuteIfBound(CameraAnimation.Sequence);
+                //OnAnimationEaseOutStarted.ExecuteIfBound(CameraAnimation.Sequence);
             }
         }
     }
@@ -198,11 +198,11 @@ void UCombat_CameraAnimationModifier::CombatTickAnimation(FActiveCameraAnimation
     bWasEasingOut = CameraAnimation.bIsEasingOut;
 }
 
-void UCombat_CameraAnimationModifier::CombatDeactivateCameraAnimation(FActiveCameraAnimationInfo& ActiveAnimation)
+void UCombat_CameraAnimationModifier::CombatDeactivateCameraAnimation(const FActiveCameraAnimationInfo& ActiveCameraAnimationInfo)
 {
     for (auto& ActiveAnimation : ActiveAnimations)
     {
-        if (ActiveAnimation.Handle == ActiveAnimation.Handle)
+        if (ActiveAnimation.Handle == ActiveCameraAnimationInfo.Handle)
         {
             if (ActiveAnimation.Player && !ensure(ActiveAnimation.Player->GetPlaybackStatus() == EMovieScenePlayerStatus::Stopped))
             {
